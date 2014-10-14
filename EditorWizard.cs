@@ -88,6 +88,55 @@ public class EditorWizard : ScriptableWizard {
 		int extendedHeightmapLength = heightmapResolution*chunksCount;
 		float[,] extendedHeightmap = new float[heightmapResolution,extendedHeightmapLength];
 
+
+
+		float value = 0f;
+		int projectionStart = 0;
+		int projectionEnd = 0;
+
+		/*****************
+		 * If the height definition does not start from 0,
+		 * the terrain is set to the height of the first point
+		 * **************/
+		int firstPosition = RealPositionToHeightmap (path.points [0].positionProjection);
+		for (int z = 0; z < firstPosition; z++) {
+			for(int x = 0; x < heightmapResolution; x++) {
+				extendedHeightmap[x, z]=path.points [0].height/terrainsHeight+groundOffset;
+			}
+		}
+
+
+		/******************************
+		 * Set the slopes according to the heights definition
+		 * ***************************/
+		for (int p = 0; p < path.points.Count-1; p++) {
+			PathReader.Point s = path.points[p];
+			PathReader.Point e = path.points[p+1];
+			
+			projectionStart = RealPositionToHeightmap(s.positionProjection);
+			projectionEnd = RealPositionToHeightmap(e.positionProjection);
+			
+			float segmentLength = projectionEnd - projectionStart;
+			
+			for(int z = projectionStart; z < projectionEnd; z++) {
+				value = Mathf.Lerp(s.height, e.height, (float)(z-projectionStart)/segmentLength);
+				for(int x = 0; x < heightmapResolution; x++) {
+					extendedHeightmap[x, z] = value/terrainsHeight+groundOffset;
+				}
+				
+			}
+		}
+
+		/****************************
+		 * The segment from the last point and the end of the terrain
+		 * is set to the last height
+		 * *************************/
+		for (int z = projectionEnd; z < extendedHeightmapLength; z++) {
+			for(int x = 0; x < heightmapResolution; x++) {
+				extendedHeightmap[x, z]=value/terrainsHeight+groundOffset;
+			}
+		}
+
 	}
 
 
