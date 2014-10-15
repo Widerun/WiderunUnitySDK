@@ -10,7 +10,7 @@ public class PathReader  {
 
 
 	public PathReader(string filename) {
-		StreamReader sr = new StreamReader(Application.dataPath + "/"+filename );
+		StreamReader sr = new StreamReader(filename );
 		fileContent = sr.ReadToEnd();
 		sr.Close();
 
@@ -58,6 +58,14 @@ public class PathReader  {
 		return max;
 	}
 
+	public float GetMaxValue() {
+		float max = 0;
+		for (int i = 0; i < points.Count; i++) {
+			if(points[i].positionProjection>max)max=points[i].positionProjection;
+		}
+		return max;
+	}
+	
 	
 	public class Point {
 		public int height;

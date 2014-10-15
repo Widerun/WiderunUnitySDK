@@ -4,9 +4,9 @@ public class EditorWizard : ScriptableWizard {
 	public float seed = 12345f;
 
 	[Range(-1, 1)]
-	public float leftHeight = 0;
+	public float leftHeight = 1;
 	[Range(-1, 1)]
-	public float rightHeight = 0;
+	public float rightHeight = 1;
 
 	public int pathWidth = 2;
 
@@ -85,7 +85,7 @@ public class EditorWizard : ScriptableWizard {
 		/****************
 		 * Use an extend heightmap for the coherent noise (not chunked)
 		 * **************/
-		int extendedHeightmapLength = heightmapResolution*chunksCount;
+		int extendedHeightmapLength = chunkSize/*heightmapResolution*/*chunksCount;//NEEDS FIX
 		float[,] extendedHeightmap = new float[heightmapResolution,extendedHeightmapLength];
 
 
@@ -117,11 +117,12 @@ public class EditorWizard : ScriptableWizard {
 			projectionEnd = RealPositionToHeightmap(e.positionProjection);
 			
 			float segmentLength = projectionEnd - projectionStart;
-			
+			//Debug.Log(extendedHeightmap.GetLength(0)+ " "+extendedHeightmap.GetLength(0)+"\n");
+			//Debug.Log("> "+heightmapResolution+ " "+projectionEnd);
 			for(int z = projectionStart; z < projectionEnd; z++) {
 				value = Mathf.Lerp(s.height, e.height, (float)(z-projectionStart)/segmentLength);
 				for(int x = 0; x < heightmapResolution; x++) {
-					extendedHeightmap[x, z] = value/terrainsHeight+groundOffset;
+					//extendedHeightmap[x, z] = value/terrainsHeight+groundOffset;
 				}
 				
 			}
@@ -137,6 +138,52 @@ public class EditorWizard : ScriptableWizard {
 			}
 		}
 
+
+
+		//APPLY NOISE
+		float[,] noiseMap = generatePerlin (seed, heightmapResolution, extendedHeightmapLength);
+
+
+
+		//APPLY THE COMPUTED HEIGHTMAP TO THE TERRAINS
+		for (int i = 0; i < sceneTerrains.Length; i++) {
+			
+			float[,] slopes = getTerrainHeightmap(extendedHeightmap,i);
+			float[,] noise = getTerrainHeightmap(noiseMap,i);
+			
+			float[,] mergedHeightMap = new float[heightmapResolution,heightmapResolution];
+			for(int w = 0 ; w < heightmapResolution ; w++) {
+				int leftPathBorder = (heightmapResolution/2)-pathWidth;
+				int rightPathBorder = (heightmapResolution/2)+pathWidth;
+				for(int h = 0 ; h < leftPathBorder ; h++) {
+					float ratio = Mathf.SmoothStep(1,1-leftHeight,(float)h/(float)leftPathBorder);
+					float noiseValue = (noise[w,h])*noiseReduction;
+					mergedHeightMap[w,h] = slopes[w,h]+ratio*noiseValue;
+					
+					/*float ratio = Mathf.SmoothStep(0.7f,0,(float)h/(float)leftPathBorder);
+					float noiseValue = noise[w,h];
+					float cliff = Mathf.SmoothStep(0.25f, slopes[w,h],(float)h/(float)leftPathBorder);
+					mergedHeightMap[w,h] = cliff-ratio*noiseValue;*/
+					
+				}
+				for(int h = rightPathBorder ; h <heightmapResolution  ; h++) {
+					float ratio = Mathf.SmoothStep(0,rightHeight,(float)(h-pathWidth-leftPathBorder)/(float)(leftPathBorder));
+					float noiseValue = (noise[w,h])*noiseReduction;
+					mergedHeightMap[w,h] = slopes[w,h]+ratio*noiseValue;
+				}
+				
+				
+				for(int h = leftPathBorder ; h < rightPathBorder  ; h++) {
+					mergedHeightMap[w,h] = slopes[w,h];
+				}
+			}
+			
+			sceneTerrains[i].terrainData.SetHeights(0,0, mergedHeightMap);
+		}
+
+		if(createAssets)
+			CreateLight ();
+
 	}
 
 
@@ -144,9 +191,17 @@ public class EditorWizard : ScriptableWizard {
 		helpString = "Please set the terrain details!";
 	}
 
-
-
-
+	void CreateLight() {
+		GameObject lightC = new GameObject();
+		lightC.name = "Sun";
+		lightC.AddComponent<Light>();
+		lightC.transform.rotation =  Quaternion.Euler ( 19, 0, 0 );
+		lightC.light.color = Color.white;
+		lightC.light.type = LightType.Directional;
+		lightC.light.intensity = 1;
+	}
+	
+	
 	/***********************************/
 	private void GenerateTerrains(int n)
 	{
@@ -194,5 +249,45 @@ public class EditorWizard : ScriptableWizard {
 		return result;
 	}
 
+
+	public static float[,] generatePerlin(float seed, int width, int length) {
+		float[,] hm = new float[width,length];
+		
+		
+		float min = float.MaxValue;
+		float max = float.MinValue;
+		for (int z = 0; z < length; z++) {
+			for (int x = 0; x < width; x++) {
+				float amp = 0.003f;
+				float freq = 0.5f;
+				float value = 0f;
+				for(int o = 1 ; o <= 8 ; o++) {
+					
+					amp *= 2f;
+					freq = freq*2f;	
+					
+					value += SimplexNoise.Noise.Generate(amp*((float)x+seed), amp*((float)z+seed))/freq;
+					
+					if(value<min)min=value;
+					if(value>max)max=value;
+				}
+				hm[x,z]=value;
+				
+				
+			}
+		}
+		
+		//NORMALIZATION
+		float diff = max - min;
+		for (int z = 0; z < length; z++) {
+			for (int x = 0; x < width; x++) {
+				hm[x,z] = (hm[x,z]-min)/diff;
+			}
+		}
+		
+		
+		
+		return hm;
+	}
 
 }
