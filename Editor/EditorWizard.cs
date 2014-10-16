@@ -156,7 +156,7 @@ public class EditorWizard : ScriptableWizard {
 				int leftPathBorder = (heightmapResolution/2)-pathWidth;
 				int rightPathBorder = (heightmapResolution/2)+pathWidth;
 				for(int h = 0 ; h < leftPathBorder ; h++) {
-					float ratio = Mathf.SmoothStep(1,1-leftHeight,(float)h/(float)leftPathBorder);
+					float ratio = leftHeight*Mathf.SmoothStep(1,/*1-leftHeight*/0,(float)h/(float)leftPathBorder);
 					float noiseValue = (noise[w,h])*noiseReduction;
 					mergedHeightMap[w,h] = slopes[w,h]+ratio*noiseValue;
 					
@@ -166,8 +166,8 @@ public class EditorWizard : ScriptableWizard {
 					mergedHeightMap[w,h] = cliff-ratio*noiseValue;*/
 					
 				}
-				for(int h = rightPathBorder ; h <heightmapResolution  ; h++) {
-					float ratio = Mathf.SmoothStep(0,rightHeight,(float)(h-pathWidth-leftPathBorder)/(float)(leftPathBorder));
+				for(int h = rightPathBorder ; h <heightmapResolution ; h++) {
+					float ratio = rightHeight*Mathf.SmoothStep(0,/*rightHeight*/1,(float)(h-pathWidth-leftPathBorder)/(float)(leftPathBorder));
 					float noiseValue = (noise[w,h])*noiseReduction;
 					mergedHeightMap[w,h] = slopes[w,h]+ratio*noiseValue;
 				}
