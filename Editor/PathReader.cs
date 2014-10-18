@@ -27,7 +27,6 @@ public class PathReader  {
 
 				Point p = new Point(int.Parse(position), int.Parse(height));
 				points.Add(p);
-				//Debug.Log("p: "+p.position);
 			}
 		}
 
@@ -35,7 +34,6 @@ public class PathReader  {
 			Point s = points[i];
 			Point e = points[i+1];
 
-			//Debug.Log("s: "+s.position+" e:"+e.position+ " p:"+e.positionProjection);
 
 			int segmentLenght = e.position - s.position;
 			int incrementH = e.height - s.height;
@@ -45,10 +43,8 @@ public class PathReader  {
 			
 			float baseIncrement = Mathf.Sqrt(Mathf.Pow(segmentLenght, 2)
 			                                 - Mathf.Pow(incrementH, 2));
-			//Debug.Log("seg: "+segmentLenght+" incrementH:"+incrementH+" b:"+baseIncrement);
 			e.positionProjection = baseIncrement + s.positionProjection;
-			//Debug.Log("seg: "+segmentLenght+" incrementH:"+incrementH);
-			//Debug.Log("\tposi: "+e.positionProjection);
+
 		}
 
 
