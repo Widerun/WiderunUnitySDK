@@ -2,6 +2,7 @@
 using System.Collections;
 using System.IO;
 using System.Collections.Generic;
+using UnityEditor;
 public class PathReader  {
 
 	private string fileContent;
@@ -26,6 +27,7 @@ public class PathReader  {
 
 				Point p = new Point(int.Parse(position), int.Parse(height));
 				points.Add(p);
+				//Debug.Log("p: "+p.position);
 			}
 		}
 
@@ -33,15 +35,20 @@ public class PathReader  {
 			Point s = points[i];
 			Point e = points[i+1];
 
+			//Debug.Log("s: "+s.position+" e:"+e.position+ " p:"+e.positionProjection);
+
 			int segmentLenght = e.position - s.position;
 			int incrementH = e.height - s.height;
 
+			if(Mathf.Abs(incrementH) > segmentLenght)
+				EditorUtility.DisplayDialog ("Error", "Error in heights files", "Ok");
 			
 			float baseIncrement = Mathf.Sqrt(Mathf.Pow(segmentLenght, 2)
 			                                 - Mathf.Pow(incrementH, 2));
-			
+			//Debug.Log("seg: "+segmentLenght+" incrementH:"+incrementH+" b:"+baseIncrement);
 			e.positionProjection = baseIncrement + s.positionProjection;
-			//Debug.Log(e.positionProjection);
+			//Debug.Log("seg: "+segmentLenght+" incrementH:"+incrementH);
+			//Debug.Log("\tposi: "+e.positionProjection);
 		}
 
 

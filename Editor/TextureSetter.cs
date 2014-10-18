@@ -12,7 +12,7 @@ public class TextureSetter : MonoBehaviour {
 	static TextureConfig cliff;
 	static List<TextureConfig> textures;
 	
-	[MenuItem("Terrain/APPLY")]
+	[MenuItem("Widerun/APPLY texture")]
 	public static void Apply(MenuCommand command)
 	{
 		textures = new List<TextureConfig>();

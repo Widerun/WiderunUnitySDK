@@ -11,7 +11,7 @@ public class EditorWizard : ScriptableWizard {
 	public int pathWidth = 2;
 
 	[Range(0, 1)]
-	public float noiseReduction = 0.1f;
+	public float noiseAmount = 0.1f;
 
 
 	private string heightsFile = "";
@@ -50,7 +50,9 @@ public class EditorWizard : ScriptableWizard {
 		PathReader path = new PathReader (heightsFile);
 
 		float pathLength = path.GetMaxValue ();
+
 		chunksCount = ((int)(pathLength+1)) / chunkSize;
+
 
 		if(createAssets)
 			GenerateTerrains (chunksCount);
@@ -117,12 +119,10 @@ public class EditorWizard : ScriptableWizard {
 			projectionEnd = RealPositionToHeightmap(e.positionProjection);
 			
 			float segmentLength = projectionEnd - projectionStart;
-			//Debug.Log(extendedHeightmap.GetLength(0)+ " "+extendedHeightmap.GetLength(0)+"\n");
-			//Debug.Log("> "+heightmapResolution+ " "+projectionEnd);
 			for(int z = projectionStart; z < projectionEnd; z++) {
 				value = Mathf.Lerp(s.height, e.height, (float)(z-projectionStart)/segmentLength);
 				for(int x = 0; x < heightmapResolution; x++) {
-					//extendedHeightmap[x, z] = value/terrainsHeight+groundOffset;
+					extendedHeightmap[x, z] = value/terrainsHeight+groundOffset;
 				}
 				
 			}
@@ -157,7 +157,7 @@ public class EditorWizard : ScriptableWizard {
 				int rightPathBorder = (heightmapResolution/2)+pathWidth;
 				for(int h = 0 ; h < leftPathBorder ; h++) {
 					float ratio = leftHeight*Mathf.SmoothStep(1,/*1-leftHeight*/0,(float)h/(float)leftPathBorder);
-					float noiseValue = (noise[w,h])*noiseReduction;
+					float noiseValue = (noise[w,h])*noiseAmount;
 					mergedHeightMap[w,h] = slopes[w,h]+ratio*noiseValue;
 					
 					/*float ratio = Mathf.SmoothStep(0.7f,0,(float)h/(float)leftPathBorder);
@@ -168,7 +168,7 @@ public class EditorWizard : ScriptableWizard {
 				}
 				for(int h = rightPathBorder ; h <heightmapResolution ; h++) {
 					float ratio = rightHeight*Mathf.SmoothStep(0,/*rightHeight*/1,(float)(h-pathWidth-leftPathBorder)/(float)(leftPathBorder));
-					float noiseValue = (noise[w,h])*noiseReduction;
+					float noiseValue = (noise[w,h])*noiseAmount;
 					mergedHeightMap[w,h] = slopes[w,h]+ratio*noiseValue;
 				}
 				
