@@ -1,5 +1,7 @@
 Widerun
 ========
+### THIS REPOSITORY IS OUTDATED, THE NEW SDK WILL BE AVAILABLE SOON
+
 
 WORKOUT LIKE NEVER BEFORE - http://www.widerun.com/
 
